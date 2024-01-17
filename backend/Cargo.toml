@@ -9,8 +9,10 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+uuid-by-string = "2.0.3"
 candid = "0.8.4"
 ic-cdk = "0.8.1"
 ic-cdk-macros = "0.6.10"
 ic-stable-memory = "0.4"
+ic-stable-structures = "0.6.1"
 serde = "1.0"

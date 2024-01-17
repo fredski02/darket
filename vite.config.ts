@@ -1,7 +1,9 @@
-import react from '@vitejs/plugin-react';
+import vue from "@vitejs/plugin-vue"
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { defineConfig } from 'vite';
+import { PrimeVueResolver } from 'unplugin-vue-components/resolvers'
+import Components from 'unplugin-vue-components/vite'
 
 const localNetwork = 'local';
 const network = process.env['DFX_NETWORK'] || localNetwork;
@@ -24,7 +26,11 @@ const canisterIds = JSON.parse(readFileSync(canisterIdPath, 'utf8'));
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [vue(), Components({
+    resolvers : [
+      PrimeVueResolver()
+    ]
+  })],
   define: {
     'process.env.DFX_NETWORK': JSON.stringify(process.env.DFX_NETWORK),
     // Expose canister IDs provided by `dfx deploy`
@@ -44,6 +50,9 @@ export default defineConfig({
   },
   server: {
     // Local IC replica proxy
+    fs: {
+      allow: ["."],
+    },
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:4943',

@@ -1,67 +1,92 @@
+use std::borrow::Cow;
 use std::cell::RefCell;
 
-use candid::{CandidType, Deserialize};
-use ic_cdk_macros::{init, post_upgrade, pre_upgrade, query, update};
-use ic_stable_memory::{
-    derive::{CandidAsDynSizeBytes, StableType},
-    retrieve_custom_data, stable_memory_init, stable_memory_post_upgrade,
-    stable_memory_pre_upgrade, store_custom_data, SBox,
-};
+use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
+use ic_stable_structures::storable::Bound;
+use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap, Storable};
 
-#[derive(CandidType, Deserialize, StableType, CandidAsDynSizeBytes, Debug, Clone)]
-struct State {
-    counter: u32,
+use candid::{CandidType, Decode, Deserialize, Encode};
+use ic_cdk_macros::{query, update};
+use serde::Serialize;
+
+const MAX_VALUE_SIZE: u32 = 100000;
+
+type Memory = VirtualMemory<DefaultMemoryImpl>;
+// type ProductStore = BTreeMap<Principal, ProductItem, StableBTreeMap>;
+
+#[derive(Clone, Debug, Default, CandidType, Deserialize, Serialize)]
+struct ProductItem {
+    pub name: String,
+    pub price: f32,
+    pub id: u128,
+    pub description: String,
 }
 
-impl Default for State {
-    fn default() -> Self {
-        State { counter: 0 }
+#[derive(Clone, Debug, Default, CandidType, Deserialize, Serialize)]
+struct ProductItemCreateParams {
+    pub name: String,
+    pub price: f32,
+    pub description: String,
+}
+
+impl Storable for ProductItem {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
     }
+
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+
+    const BOUND: Bound = Bound::Bounded {
+        max_size: MAX_VALUE_SIZE,
+        is_fixed_size: false,
+    };
 }
 
 thread_local! {
-    static STATE: RefCell<Option<State>> = RefCell::default();
+
+    static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
+        RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
+
+    static PRODUCT_STORE: RefCell<StableBTreeMap<u128, ProductItem, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
+        )
+    );
 }
 
-#[init]
-fn init() {
-    stable_memory_init();
-
-    STATE.with(|s| {
-        *s.borrow_mut() = Some(State::default());
-    });
-}
-
-#[pre_upgrade]
-fn pre_upgrade() {
-    let state = STATE.with(|s| s.borrow_mut().take().unwrap());
-    let boxed_state = SBox::new(state).expect("Out of memory");
-
-    store_custom_data::<State>(0, boxed_state);
-    stable_memory_pre_upgrade().expect("Out of memory");
-}
-
-#[post_upgrade]
-fn post_upgrade() {
-    stable_memory_post_upgrade();
-
-    let state = retrieve_custom_data::<State>(0).unwrap().into_inner();
-    STATE.with(|s| {
-        *s.borrow_mut() = Some(state);
-    });
+#[update]
+fn create_product(product: ProductItemCreateParams) -> u128 {
+    PRODUCT_STORE.with(|product_store| {
+        let mut products = product_store.borrow_mut();
+        let new_id = products.len() as u128;
+        let new_product = ProductItem {
+            name: product.name,
+            price: product.price,
+            description: product.description,
+            id: new_id,
+        };
+        products.insert(new_id.clone(), new_product);
+        return new_id;
+    })
 }
 
 #[query]
-fn get() -> u32 {
-    STATE.with(|s| s.borrow().as_ref().unwrap().counter)
+fn get_product(key: u128) -> Option<ProductItem> {
+    PRODUCT_STORE.with(|product_store| product_store.borrow_mut().get(&key))
 }
 
-#[update]
-fn inc() {
-    STATE.with(|s| s.borrow_mut().as_mut().unwrap().counter += 1)
-}
+#[query]
+fn search_products(search_text: String) -> Vec<ProductItem> {
+    PRODUCT_STORE.with(|p| {
+        let mut products = vec![];
 
-#[update]
-fn set(value: u32) {
-    STATE.with(|s| s.borrow_mut().as_mut().unwrap().counter = value)
+        for (_, product) in p.borrow().iter() {
+            if product.name.to_ascii_lowercase().contains(&search_text.to_ascii_lowercase()) {
+                products.push(product.clone());
+            }
+        }
+        products
+    })
 }

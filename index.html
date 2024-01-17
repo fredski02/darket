@@ -4,10 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + IC (Rust)</title>
+    <title>Darket - Decentralized Market Place</title>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module">
+      /**
+       * @dfinity/agent requires this. Can be removed once it's fixed
+       */
+      import { Buffer } from "buffer"
+    
+      window.global = window
+      window.Buffer = Buffer
+    </script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
