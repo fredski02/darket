@@ -2,7 +2,7 @@ TODO
 
 ## Need
 // - Single product pages - Basic DONE
-- User Auth
+// User Auth and attaching owners to products
 - User Cart
 - Manage User items
 - Product Images

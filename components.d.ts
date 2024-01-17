@@ -12,7 +12,6 @@ declare module 'vue' {
     Card: typeof import('primevue/card')['default']
     InputText: typeof import('primevue/inputtext')['default']
     Items: typeof import('./src/components/Items.vue')['default']
-    Menu: typeof import('primevue/menu')['default']
     NavBar: typeof import('./src/components/NavBar.vue')['default']
     Panel: typeof import('primevue/panel')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

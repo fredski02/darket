@@ -1,18 +1,19 @@
+use serde::Serialize;
 use std::borrow::Cow;
 use std::cell::RefCell;
 
+use candid::{CandidType, Decode, Deserialize, Encode};
+use ic_cdk::api::caller as caller_api;
+use ic_cdk::export::{candid, Principal};
+use ic_cdk::println;
+use ic_cdk_macros::{query, update};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap, Storable};
 
-use candid::{CandidType, Decode, Deserialize, Encode};
-use ic_cdk_macros::{query, update};
-use serde::Serialize;
+type Memory = VirtualMemory<DefaultMemoryImpl>;
 
 const MAX_VALUE_SIZE: u32 = 100000;
-
-type Memory = VirtualMemory<DefaultMemoryImpl>;
-// type ProductStore = BTreeMap<Principal, ProductItem, StableBTreeMap>;
 
 #[derive(Clone, Debug, Default, CandidType, Deserialize, Serialize)]
 struct ProductItem {
@@ -20,6 +21,7 @@ struct ProductItem {
     pub price: f32,
     pub id: u128,
     pub description: String,
+    pub owner: String,
 }
 
 #[derive(Clone, Debug, Default, CandidType, Deserialize, Serialize)]
@@ -44,6 +46,20 @@ impl Storable for ProductItem {
     };
 }
 
+/// Unlike Motoko, the caller identity is not built into Rust.
+/// Thus, we use the ic_cdk::api::caller() method inside this wrapper function.
+/// The wrapper prevents the use of the anonymous identity. Forbidding anonymous
+/// interactions is the recommended default behavior for IC canisters.
+fn caller() -> Principal {
+    let caller = caller_api();
+    // The anonymous principal is not allowed to interact with the
+    // encrypted notes canister.
+    if caller == Principal::anonymous() {
+        panic!("Anonymous principal not allowed to make calls.")
+    }
+    caller
+}
+
 thread_local! {
 
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
@@ -59,6 +75,8 @@ thread_local! {
 #[update]
 fn create_product(product: ProductItemCreateParams) -> u128 {
     PRODUCT_STORE.with(|product_store| {
+        let user = caller();
+        println!("{:?}", user.to_string());
         let mut products = product_store.borrow_mut();
         let new_id = products.len() as u128;
         let new_product = ProductItem {
@@ -66,6 +84,7 @@ fn create_product(product: ProductItemCreateParams) -> u128 {
             price: product.price,
             description: product.description,
             id: new_id,
+            owner: user.to_string(),
         };
         products.insert(new_id.clone(), new_product);
         return new_id;
@@ -83,10 +102,51 @@ fn search_products(search_text: String) -> Vec<ProductItem> {
         let mut products = vec![];
 
         for (_, product) in p.borrow().iter() {
-            if product.name.to_ascii_lowercase().contains(&search_text.to_ascii_lowercase()) {
+            if product
+                .name
+                .to_ascii_lowercase()
+                .contains(&search_text.to_ascii_lowercase())
+            {
                 products.push(product.clone());
             }
         }
         products
+    })
+}
+
+#[query]
+fn get_user_products() -> Vec<ProductItem> {
+    PRODUCT_STORE.with(|p| {
+        let mut products = vec![];
+        let user = caller();
+
+        for (_, product) in p.borrow().iter() {
+            if product.owner == user.to_string() {
+                products.push(product.clone())
+            }
+        }
+        products
+    })
+}
+
+#[update]
+fn delete_product(key: u128) -> bool {
+    PRODUCT_STORE.with(|p| {
+        let user = caller();
+
+        let product = p.borrow_mut().get(&key);
+        match product {
+            Some(prod) => {
+                if prod.owner != user.to_string() {
+                    return false;
+                }
+                let res = p.borrow_mut().remove(&key);
+                match res {
+                    Some(_) => return true,
+                    None => return false,
+                }
+            }
+            None => return false,
+        }
     })
 }

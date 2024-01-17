@@ -3,6 +3,7 @@ type ProductItem = record {
     price: float32;
     id: nat;
     description: text;
+    owner : text;
 };
 
 type ProductItemCreateParams = record {
@@ -16,6 +17,8 @@ type ProductItemVec = vec ProductItem;
 service : {
   "get_product" : (nat) -> (opt ProductItem) query;
   "create_product" : (ProductItemCreateParams) -> (nat);
+  "delete_product" : (nat) -> (bool);
   "search_products" : (text) -> (ProductItemVec) query;
+  "get_user_products" : () -> (ProductItemVec) query;
 };
 

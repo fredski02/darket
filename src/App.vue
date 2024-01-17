@@ -16,7 +16,7 @@ const client = createClient({
     backend: backendService
   },
   providers: [new InternetIdentity({
-    providerUrl : `http://127.0.0.1:4943/?canisterId=be2us-64aaa-aaaaa-qaabq-cai`,
+    providerUrl : `http://be2us-64aaa-aaaaa-qaabq-cai.localhost:4943/`,
     dev: true,
   })],
   globalProviderConfig: {
