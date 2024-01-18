@@ -10,6 +10,7 @@ declare module 'vue' {
     Avatar: typeof import('primevue/avatar')['default']
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']
+    InputNumber: typeof import('primevue/inputnumber')['default']
     InputText: typeof import('primevue/inputtext')['default']
     Items: typeof import('./src/components/Items.vue')['default']
     NavBar: typeof import('./src/components/NavBar.vue')['default']
@@ -19,6 +20,7 @@ declare module 'vue' {
     Skeleton: typeof import('primevue/skeleton')['default']
     SpeedDial: typeof import('primevue/speeddial')['default']
     SplitButton: typeof import('primevue/splitbutton')['default']
+    Textarea: typeof import('primevue/textarea')['default']
     Toolbar: typeof import('primevue/toolbar')['default']
   }
 }
