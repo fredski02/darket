@@ -38,27 +38,28 @@ watch(searchText, (newVal, oldVal) => {
   <div class="py-4">
     <Toolbar class="px-2 py-2">
       <template #start>
-        <Button icon="pi pi-plus" class="mr-2" />
-        <Button icon="pi pi-print" class="mr-2" />
-        <Button icon="pi pi-upload" />
+        <Button icon="pi pi-plus" severity="secondary" outlined class="mr-2" />
+        <Button icon="pi pi-print" class="mr-2" outlined severity="secondary" />
+        <Button icon="pi pi-upload" severity="secondary" outlined />
       </template>
 
       <template #center>
         <span class="p-input-icon-left">
-          <i class="pi pi-search" />
-          <InputText :disabled="loading" v-model="searchText" placeholder="Search" />
+          <i class="pi" :class="loading ? 'pi-spinner pi-spin' : 'pi-search'" />
+          <InputText :disabled="loading" v-model="searchText" placeholder="Search"/>
         </span>
       </template>
 
       <template #end>
-        <SplitButton label="Save" icon="pi pi-check"></SplitButton>
+        <SplitButton label="Save" icon="pi pi-check" severity="secondary" outlined></SplitButton>
       </template>
     </Toolbar>
   </div>
   <div class="grid grid-cols-4 gap-4" v-if="products && !loading">
-    <Card v-for="product in products">
+    <Card v-for="product in products" :pt="{body : (options) => ({class : ['rounded-b']}) }">
       <template #header>
         <img alt="user header"
+        class="rounded-t"
           src="https://t2.gstatic.com/licensed-image?q=tbn:ANd9GcQOO0X7mMnoYz-e9Zdc6Pe6Wz7Ow1DcvhEiaex5aSv6QJDoCtcooqA7UUbjrphvjlIc" />
       </template>
       <template #title> {{ product.name }} </template>
@@ -70,7 +71,7 @@ watch(searchText, (newVal, oldVal) => {
       </template>
       <template #footer>
         <router-link :to="`product/${product.id}`">
-          <Button icon="pi pi-check" label="View" />
+          <Button label="View" severity="danger"/>
         </router-link>
       </template>
     </Card>

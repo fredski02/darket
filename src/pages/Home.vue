@@ -4,8 +4,8 @@
             <h1 class="text-4xl mb-2">Buy and Sell your items</h1>
             <p class="mb-6">List your items for just 10 Cents!</p>
             <div class="input-bar flex flex-row items-center justify-center gap-x-2">
-                <Button>Sell your items</Button>
-                <Button>How it works</Button>
+                <Button severity="danger">Sell your items</Button>
+                <Button severity="secondary">How it works</Button>
             </div>
         </div>
     </div>
