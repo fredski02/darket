@@ -18,8 +18,6 @@ declare module 'vue' {
     Items: typeof import('./src/components/Items.vue')['default']
     NavBar: typeof import('./src/components/NavBar.vue')['default']
     Panel: typeof import('primevue/panel')['default']
-    ProgressBar: typeof import('primevue/progressbar')['default']
-    Rating: typeof import('primevue/rating')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Skeleton: typeof import('primevue/skeleton')['default']

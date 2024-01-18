@@ -15,8 +15,8 @@
                         buttonClass="p-button-outlined h-12 w-12 text-rose-500"
                         :tooltipOptions="{ position: 'left', event: 'hover' }" />
                 </div>
-                <router-link to="/manage-cart">
-                    <Button aria-label="Cart" icon="pi pi-shopping-cart" severity="danger" rounded outlined />
+                <router-link to="/cart" v-if="isLoggedIn">
+                    <Button :label="numInCart ? numInCart + '' : ''" icon="pi pi-shopping-cart" severity="danger" rounded outlined />
                 </router-link>
                 <ConnectButton />
                 <span>{{ principalShort }}</span>
@@ -28,12 +28,18 @@
 <script setup lang="ts">
 import { ConnectButton } from "@connect2ic/vue"
 import { useConnect } from "@connect2ic/vue"
-import { computed, ref, toRefs } from "vue";
+import { computed, onMounted, ref, toRefs, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import SpeedDial from "primevue/speeddial";
+import { useCanister } from "@connect2ic/vue"
+import useEventBus from "../composables/useEmitter";
 
 const router = useRouter();
 const { principal } = toRefs(useConnect());
+
+const [backend] = useCanister("backend")
+const eventBus = useEventBus();
+const cartItems = ref([]);
 
 const userMenuItems = ref([
     {
@@ -64,7 +70,34 @@ const principalShort = computed(() => {
     return `${p ? p + '...' : ''}`
 })
 
+const fetchCartItems = async () => {
+    try {
+        const data = await backend.value.get_cart();
+        cartItems.value = data;
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+const numInCart = computed(() => {
+    return cartItems.value.length
+})
+
 const isLoggedIn = computed(() => !!principal.value)
+
+
+
+watchEffect(() => {
+  if (backend.value) {
+    fetchCartItems()
+  }
+})
+
+onMounted(() => {
+    eventBus.on('should-fetch-cart', () => {
+        fetchCartItems()
+    })
+})
 
 
 </script>

@@ -1,11 +1,12 @@
 <template>
     <div class="container mx-auto">
         <Card v-if="productData" class="mt-8" :pt="cardClasses">
-            <template #title> 
+            <template #title>
                 <div class="flex justify-between items-center">
-                <span>{{ productData.name }}</span> 
-                <Button icon="pi pi-cart-plus" rounded label="Add to cart"></Button>
-            </div>
+                    <span>{{ productData.name }}</span>
+                    <Button :icon="loading ? 'pi pi-spinner pi-spin' : 'pi pi-cart-plus'" rounded
+                        :label="`Add to cart${numInCart ? '(' + numInCart + ')' : ''}`" @click="() => addToCart()"></Button>
+                </div>
             </template>
             <template #content>
                 <div class="flex gap-x-4">
@@ -23,13 +24,6 @@
 
                                 </div>
                             </template>
-
-                            <!-- <template #icons>
-                                <button class="p-panel-header-icon p-link mr-2" @click="panelToggle">
-                                    <span class="pi pi-cog"></span>
-                                </button>
-                                <Menu ref="menu" id="config_menu" :model="items" popup />
-                            </template> -->
                             <p class="m-0">
                                 {{ productData.description }}
                             </p>
@@ -53,18 +47,52 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
 import { useCanister } from "@connect2ic/vue"
-import { onMounted, ref } from 'vue';
-
+import { computed, onMounted, ref } from 'vue';
+import useEventBus from "../composables/useEmitter";
 const route = useRoute()
 const itemId = route.params.id
-const [backendService] = useCanister("backend")
+const [backend] = useCanister("backend")
+const eventBus = useEventBus()
 
 const productData = ref();
+const cartItems = ref([]);
+const loading = ref(false);
 const cardClasses = { root: { class: `shadow-none border border-solid border-grey` } }
 
+const addToCart = async () => {
+    const id = parseInt(productData.value.id)
+    try {
+        loading.value = true
+        const data = await backend.value.add_to_cart(id);
+        eventBus.emit('should-fetch-cart')
+        await fetchCartItems();
+    } catch (e) {
+        console.log(e)
+    }
+    loading.value = false;
+}
+
+const fetchCartItems = async () => {
+    loading.value = true;
+    try {
+        const data = await backend.value.get_cart();
+        cartItems.value = data;
+    } catch (e) {
+        console.log(e)
+    }
+    loading.value = false;
+}
+
+const numInCart = computed(() => {
+    const id = parseInt(productData.value.id)
+    return cartItems.value.filter((item) => parseInt(item.id) === id).length
+})
+
+
 onMounted(async () => {
-    const data = await backendService.value.get_product(Number(itemId))
+    const data = await backend.value.get_product(Number(itemId))
     productData.value = data.length ? data[0] : null
+    fetchCartItems();
 })
 
 </script>

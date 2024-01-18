@@ -27,6 +27,15 @@ watchEffect(() => {
   }
 })
 
+// const addToCart = async (productId: number) => {
+//     try {
+//         const data = await backend.value.add_to_cart(productId);
+//         await fetchCartItems();
+//     } catch (e) {
+//         cartError.value = e;
+//     }
+// }
+
 watch(searchText, (newVal, oldVal) => {
   debouncedSearch(newVal);
 })

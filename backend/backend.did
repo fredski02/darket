@@ -14,11 +14,19 @@ type ProductItemCreateParams = record {
 
 type ProductItemVec = vec ProductItem;
 
+type Result = variant {
+  Ok;
+  Err : text;
+};
+
+
 service : {
   "get_product" : (nat) -> (opt ProductItem) query;
   "create_product" : (ProductItemCreateParams) -> (nat);
   "delete_product" : (nat) -> (bool);
   "search_products" : (text) -> (ProductItemVec) query;
   "get_user_products" : () -> (ProductItemVec) query;
+  "add_to_cart" : (nat) -> (Result);
+  "remove_from_cart" : (nat) -> (Result);
+  "get_cart" : () -> (ProductItemVec) query;
 };
-

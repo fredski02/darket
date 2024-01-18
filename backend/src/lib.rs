@@ -1,6 +1,7 @@
 use serde::Serialize;
 use std::borrow::Cow;
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 
 use candid::{CandidType, Decode, Deserialize, Encode};
 use ic_cdk::api::caller as caller_api;
@@ -46,6 +47,18 @@ impl Storable for ProductItem {
     };
 }
 
+#[derive(Serialize, Deserialize)]
+struct TempStore {
+    carts: BTreeMap<Principal, Vec<ProductItem>>,
+}
+
+impl Default for TempStore {
+    fn default() -> Self {
+        Self {
+            carts: BTreeMap::new(),
+        }
+    }
+}
 /// Unlike Motoko, the caller identity is not built into Rust.
 /// Thus, we use the ic_cdk::api::caller() method inside this wrapper function.
 /// The wrapper prevents the use of the anonymous identity. Forbidding anonymous
@@ -61,7 +74,6 @@ fn caller() -> Principal {
 }
 
 thread_local! {
-
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
@@ -70,6 +82,7 @@ thread_local! {
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))),
         )
     );
+    static TEMP_STORE: RefCell<TempStore> = RefCell::new(TempStore::default())
 }
 
 #[update]
@@ -148,5 +161,75 @@ fn delete_product(key: u128) -> bool {
             }
             None => return false,
         }
+    })
+}
+
+#[update]
+fn add_to_cart(product_id: u128) -> Result<(), String> {
+    PRODUCT_STORE.with(|prod_store| {
+        TEMP_STORE.with(|temp_store| {
+            let user = caller();
+
+            let mut cart: Vec<ProductItem> = vec![];
+            let p_store = prod_store.borrow();
+            let mut t_store = temp_store.borrow_mut();
+            match p_store.get(&product_id) {
+                Some(prod) => cart.push(prod),
+                None => {
+                    return Err(format!(
+                        "Product with id : {} was not found. Failed to add to cart",
+                        &product_id
+                    ))
+                }
+            }
+
+            match t_store.carts.get_mut(&user) {
+                Some(user_cart) => {
+                    user_cart.append(&mut cart);
+                    Ok(())
+                }
+                None => {
+                    t_store.carts.insert(user, cart);
+                    Ok(())
+                }
+            }
+        })
+    })
+}
+
+#[update]
+fn remove_from_cart(product_id: u128) -> Result<(), String> {
+    TEMP_STORE.with(|temp_store| {
+        let user = caller();
+        match temp_store.borrow_mut().carts.get_mut(&user) {
+            Some(cart) => {
+                let index = cart.iter().position(|prod| prod.id == product_id).unwrap();
+                cart.remove(index);
+                // cart.retain(|cart_item| &cart_item.id != &product_id);
+                Ok(())
+            }
+            None => Err("User has not cart".to_string()),
+        }
+    })
+}
+
+#[query]
+fn get_cart() -> Vec<ProductItem> {
+    TEMP_STORE.with(|temp_store| {
+        let user = caller();
+
+        let return_cart: Vec<ProductItem>;
+        let mut store = temp_store.borrow_mut();
+        match store.carts.get(&user) {
+            Some(cart) => {
+                return_cart = cart.clone();
+            }
+            None => {
+                store.carts.insert(user, vec![]);
+                let temp_vec: Vec<ProductItem> = vec![];
+                return_cart = temp_vec.clone();
+            }
+        }
+        return_cart
     })
 }

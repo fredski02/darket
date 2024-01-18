@@ -4,7 +4,7 @@ import Footer from './components/Footer.vue'
 import { createClient } from "@connect2ic/core"
 import { InternetIdentity, defaultProviders } from "@connect2ic/core/providers"
 import { ConnectDialog, Connect2ICProvider } from "@connect2ic/vue"
-import { useCounterStore } from './store/global'
+
 import "@connect2ic/core/style.css"
 
 // import canisters
@@ -25,8 +25,6 @@ const client = createClient({
   },
 })
 
-
-const counterStore = useCounterStore()
 </script>
 
 <template>
@@ -59,3 +57,4 @@ const counterStore = useCounterStore()
   opacity: 0;
 }
 </style>
+./store/cart
