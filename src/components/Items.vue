@@ -28,9 +28,7 @@ watchEffect(() => {
 })
 
 watch(searchText, (newVal, oldVal) => {
-  if(newVal.length) {
-    debouncedSearch(newVal);
-  }
+  debouncedSearch(newVal);
 })
 
 </script>
@@ -46,7 +44,7 @@ watch(searchText, (newVal, oldVal) => {
       <template #center>
         <span class="p-input-icon-left">
           <i class="pi" :class="loading ? 'pi-spinner pi-spin' : 'pi-search'" />
-          <InputText :disabled="loading" v-model="searchText" placeholder="Search"/>
+          <InputText :disabled="loading" v-model="searchText" placeholder="Search" />
         </span>
       </template>
 
@@ -56,10 +54,10 @@ watch(searchText, (newVal, oldVal) => {
     </Toolbar>
   </div>
   <div class="grid grid-cols-4 gap-4" v-if="products && !loading">
-    <Card v-for="product in products" :pt="{ body: (options) => ({ class: ['border rounded-b'] }) }" class="shadow-none" :disalbed="loading">
+    <Card v-for="product in products" :pt="{ body: (options) => ({ class: ['border rounded-b'] }) }" class="shadow-none"
+      :disalbed="loading">
       <template #header>
-        <img alt="user header"
-        class="rounded-t"
+        <img alt="user header" class="rounded-t"
           src="https://t2.gstatic.com/licensed-image?q=tbn:ANd9GcQOO0X7mMnoYz-e9Zdc6Pe6Wz7Ow1DcvhEiaex5aSv6QJDoCtcooqA7UUbjrphvjlIc" />
       </template>
       <template #title> {{ product.name }} </template>
@@ -71,13 +69,13 @@ watch(searchText, (newVal, oldVal) => {
       </template> -->
       <template #footer>
         <router-link :to="`product/${product.id}`">
-          <Button label="View" severity="danger"/>
+          <Button label="View" severity="danger" />
         </router-link>
       </template>
     </Card>
   </div>
   <div v-if="loading" class="grid grid-cols-4 gap-4">
-    <Card v-for="i in [0, 1, 2, 3]" :key="i" >
+    <Card v-for="i in [0, 1, 2, 3]" :key="i">
       <template #header>
         <Skeleton height="8rem"></Skeleton>
       </template>

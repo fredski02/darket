@@ -1,7 +1,6 @@
 <template>
-    <div class="bg-rose-100 border-b border-rose-200 w-full fixed z-50 pr-2 pl-4 py-4">
-        <div
-            class="flex flex-row align-center items-center w-full justify-between  container mx-auto">
+    <div class="bg-rose-100 border-b border-rose-200 w-full fixed z-50 px-2 py-4">
+        <div class="flex flex-row align-center items-center w-full justify-between  container mx-auto">
             <div>
                 <router-link to="/">
                     <strong>D A R K E T</strong>
