@@ -1,23 +1,27 @@
 <template>
-    <div
-        class="flex flex-row align-center items-center w-full justify-between pr-2 pl-4 py-2 bg-rose-100 border-b border-rose-200">
-        <div>
-            <router-link to="/">
-                <strong>D A R K E T</strong>
-            </router-link>
-            <router-link to="/">
-                | Browse market
-            </router-link>
-        </div>
-        <div class="items-center flex gap-x-2 item-center">
-            <div v-if="isLoggedIn" :style="{ position: 'relative', height: '46px', width: '50px' }">
-                <SpeedDial severity="danger" :model="userMenuItems" direction="down" showIcon="pi pi-bars"
-                    buttonClass="p-button-outlined h-12 w-12 text-rose-500" :tooltipOptions="{ position: 'left' }" />
+    <div class="bg-rose-100 border-b border-rose-200 w-full fixed z-50 pr-2 pl-4 py-4">
+        <div
+            class="flex flex-row align-center items-center w-full justify-between  container mx-auto">
+            <div>
+                <router-link to="/">
+                    <strong>D A R K E T</strong>
+                </router-link>
+                <router-link to="/">
+                    | Browse market
+                </router-link>
             </div>
-            <router-link to="/manage-cart">
-                <Button aria-label="Cart" icon="pi pi-shopping-cart" severity="danger" rounded outlined />
-            </router-link>
-            <ConnectButton />
+            <div class="items-center flex gap-x-2 item-center">
+                <div v-if="isLoggedIn" :style="{ position: 'relative', height: '46px', width: '50px' }">
+                    <SpeedDial severity="danger" :model="userMenuItems" direction="down" showIcon="pi pi-bars"
+                        buttonClass="p-button-outlined h-12 w-12 text-rose-500"
+                        :tooltipOptions="{ position: 'left', event: 'hover' }" />
+                </div>
+                <router-link to="/manage-cart">
+                    <Button aria-label="Cart" icon="pi pi-shopping-cart" severity="danger" rounded outlined />
+                </router-link>
+                <ConnectButton />
+                <span>{{ principalShort }}</span>
+            </div>
         </div>
     </div>
 </template>
@@ -55,6 +59,11 @@ const userMenuItems = ref([
         }
     },
 ])
+
+const principalShort = computed(() => {
+    let p = principal.value?.slice(0, 5)
+    return `${p ? p + '...' : ''}`
+})
 
 const isLoggedIn = computed(() => !!principal.value)
 

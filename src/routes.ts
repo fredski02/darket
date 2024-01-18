@@ -6,10 +6,10 @@ import CreateProduct from './pages/CreateProduct.vue';
 import ManageProducts from './pages/ManageProducts.vue';
 
 const routes = [
-    { path: '/', name: 'home', component: Home },
-    { path: '/product/:id', name: 'product-single', component: ProductSingle },
-    { path: '/create-product', name: 'product-create', component: CreateProduct },
-    { path: '/manage-products', name: 'products-manage', component: ManageProducts },
+    { path: '/', name: 'home', component: Home, meta : { transition : 'slide-right'} },
+    { path: '/product/:id', name: 'product-single', component: ProductSingle, meta : { transition : 'slide-right'} },
+    { path: '/create-product', name: 'product-create', component: CreateProduct, meta : { transition : 'slide-right'} },
+    { path: '/manage-products', name: 'products-manage', component: ManageProducts, meta : { transition : 'slide-right'} },
 ]
 
 const router = createRouter({

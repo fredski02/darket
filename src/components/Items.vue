@@ -56,7 +56,7 @@ watch(searchText, (newVal, oldVal) => {
     </Toolbar>
   </div>
   <div class="grid grid-cols-4 gap-4" v-if="products && !loading">
-    <Card v-for="product in products" :pt="{body : (options) => ({class : ['rounded-b']}) }">
+    <Card v-for="product in products" :pt="{ body: (options) => ({ class: ['border rounded-b'] }) }" class="shadow-none" :disalbed="loading">
       <template #header>
         <img alt="user header"
         class="rounded-t"
@@ -64,11 +64,11 @@ watch(searchText, (newVal, oldVal) => {
       </template>
       <template #title> {{ product.name }} </template>
       <template #subtitle> {{ product.price }} ICP </template>
-      <template #content>
+      <!-- <template #content>
         <p class="m-0">
           {{ product.id }}
         </p>
-      </template>
+      </template> -->
       <template #footer>
         <router-link :to="`product/${product.id}`">
           <Button label="View" severity="danger"/>
